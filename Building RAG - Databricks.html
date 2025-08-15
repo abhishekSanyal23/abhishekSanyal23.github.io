@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide: Building a RAG Chatbot on Databricks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Soothing Neutrals -->
+    <!-- Application Structure Plan: A thematic, guided-tour structure that walks the user through the RAG building process. The core is an interactive architectural diagram where users can click stages (Ingest, Prepare, Index, Generate) to reveal detailed explanations and visualizations below. This narrative flow is more engaging for a technical process than a static dashboard, allowing users to learn progressively from the high-level concept to the deep-dive details. -->
+    <!-- Visualization & Content Choices: 1. Architectural Blueprint (Goal: Organize) -> Interactive HTML/CSS diagram with JS click events. Justification: More engaging and responsive than a static image, allows dynamic content reveals. 2. Chunking Strategy (Goal: Compare) -> Bar Chart (Chart.js). Justification: Clearly compares the trade-offs (complexity vs. awareness) of different methods. 3. Pipeline Sync Type (Goal: Compare) -> Doughnut Chart (Chart.js). Justification: Simple, effective visual for showing two primary options and their use cases. 4. RAG Chain Logic (Goal: Organize) -> Styled HTML flow diagram. Justification: Clearly illustrates the process steps without the overhead of complex diagramming tools. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5;
+            color: #4A4A4A;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            color: #3498DB;
+            border-bottom: 2px solid #3498DB;
+        }
+        .stage-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .stage-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .stage-card.active {
+             border-color: #3498DB;
+             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+        }
+        .detail-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .detail-section.visible {
+            display: block;
+            opacity: 1;
+        }
+        .code-block {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-[#4A4A4A]">Databricks RAG Architecture</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#blueprint" class="nav-link text-gray-600 hover:text-[#3498DB] pb-1">Blueprint</a>
+                <a href="#details-container" class="nav-link text-gray-600 hover:text-[#3498DB] pb-1">Details</a>
+                <a href="#production" class="nav-link text-gray-600 hover:text-[#3498DB] pb-1">Production</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <section id="intro" class="text-center py-16">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-[#4A4A4A] mb-4">The Lakehouse-Native RAG Application</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                Explore how Databricks provides a unified, secure, and high-performance platform to build end-to-end Retrieval-Augmented Generation chatbots. This interactive guide breaks down the entire process, from raw documents to intelligent, context-aware answers.
+            </p>
+        </section>
+
+        <section id="blueprint" class="py-12">
+            <h3 class="text-3xl font-bold text-center mb-2">Architectural Blueprint</h3>
+            <p class="text-center text-gray-600 mb-10">Click on each stage to explore the components and processes involved.</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center text-center font-mono text-sm text-gray-500">
+                <div id="stage-ingest" class="stage-card bg-white p-6 rounded-lg border-2 border-transparent">
+                    <div class="text-3xl mb-2">📄</div>
+                    <h4 class="font-bold text-lg text-[#4A4A4A]">1. Ingest & Parse</h4>
+                    <p>From PDF to Delta Table</p>
+                </div>
+                <div class="hidden md:block text-2xl text-gray-400">→</div>
+                <div id="stage-prepare" class="stage-card bg-white p-6 rounded-lg border-2 border-transparent">
+                    <div class="text-3xl mb-2">🧩</div>
+                    <h4 class="font-bold text-lg text-[#4A4A4A]">2. Prepare Data</h4>
+                    <p>Strategic Text Chunking</p>
+                </div>
+                <div class="hidden md:block text-2xl text-gray-400">→</div>
+                <div id="stage-index" class="stage-card bg-white p-6 rounded-lg border-2 border-transparent">
+                    <div class="text-3xl mb-2">🔍</div>
+                    <h4 class="font-bold text-lg text-[#4A4A4A]">3. Index & Embed</h4>
+                    <p>Automated Vector Search</p>
+                </div>
+                 <div class="hidden md:block text-2xl text-gray-400">→</div>
+                <div id="stage-generate" class="stage-card bg-white p-6 rounded-lg border-2 border-transparent">
+                    <div class="text-3xl mb-2">🤖</div>
+                    <h4 class="font-bold text-lg text-[#4A4A4A]">4. Retrieve & Generate</h4>
+                    <p>Querying with DBRX</p>
+                </div>
+            </div>
+        </section>
+
+        <div id="details-container" class="py-12">
+            <article id="detail-ingest" class="detail-section bg-white p-8 rounded-lg shadow-lg">
+                <h4 class="text-2xl font-bold mb-4 text-[#4A4A4A]">Stage 1: Ingestion and Parsing</h4>
+                <p class="mb-6 text-gray-600">The process begins by bringing unstructured documents, like PDFs, into a governed environment. Unity Catalog Volumes provide a secure, addressable location for these files. The text is then programmatically extracted, cleaned, and stored in a Delta table, creating a structured, auditable record of the raw knowledge source.</p>
+                <div class="bg-gray-100 p-6 rounded-lg text-center">
+                    <p class="font-mono">PDF in UC Volume → Text Extraction → Raw Delta Table</p>
+                    <p class="mt-2 text-sm text-gray-500">This initial step ensures all source data is governed and versioned from the very beginning.</p>
+                </div>
+                <div class="mt-6">
+                    <button class="toggle-code-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                        <span class="btn-text">Show Code Example</span>
+                        <span class="btn-icon ml-2">▶</span>
+                    </button>
+                    <div class="code-container hidden mt-4 relative">
+                        <button class="copy-code-btn absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-1 px-2 rounded">Copy</button>
+                        <pre class="code-block bg-gray-800 text-white p-4 rounded-lg overflow-x-auto"><code class="language-python">
+import pypdf
+import re
+import os
+
+def extract_text_from_pdf(pdf_path):
+    """Extracts text from a PDF file located in a UC Volume."""
+    print(f"Extracting text from: {pdf_path}")
+    reader = pypdf.PdfReader(pdf_path)
+    pages_text = []
+    for page_num, page in enumerate(reader.pages):
+        page_text = page.extract_text()
+        # Clean up text by removing excessive newlines and whitespace
+        cleaned_text = re.sub(r'\s+', ' ', page_text).strip()
+        pages_text.append({
+            "source": os.path.basename(pdf_path),
+            "page_number": page_num + 1,
+            "text": cleaned_text
+        })
+    print(f"Successfully extracted {len(pages_text)} pages.")
+    return pages_text
+
+# Example usage:
+# pdf_volume_path = "/Volumes/main/rag_chatbot/my_volume/sample_document.pdf"
+# pages = extract_text_from_pdf(pdf_volume_path)
+# raw_pdf_df = spark.createDataFrame(pages)
+# raw_pdf_df.write.mode("overwrite").saveAsTable("main.rag_chatbot.raw_pdf_text")
+</code></pre>
+                    </div>
+                </div>
+            </article>
+
+            <article id="detail-prepare" class="detail-section bg-white p-8 rounded-lg shadow-lg">
+                <h4 class="text-2xl font-bold mb-4 text-[#4A4A4A]">Stage 2: Data Preparation & Chunking</h4>
+                <p class="mb-6 text-gray-600">Chunking is a critical step where large documents are broken into smaller, semantically meaningful pieces. The quality of these chunks directly impacts retrieval accuracy. The goal is to create text segments that are dense with information but small enough to fit within model context windows. For most documents, a Recursive Character strategy provides the best balance.</p>
+                <div class="chart-container">
+                    <canvas id="chunkingChart"></canvas>
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-4">The chunked data is stored in a new Delta table, which becomes the single source of truth for the knowledge base.</p>
+                <div class="mt-6">
+                    <button class="toggle-code-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                        <span class="btn-text">Show Code Example</span>
+                        <span class="btn-icon ml-2">▶</span>
+                    </button>
+                    <div class="code-container hidden mt-4 relative">
+                        <button class="copy-code-btn absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-1 px-2 rounded">Copy</button>
+                        <pre class="code-block bg-gray-800 text-white p-4 rounded-lg overflow-x-auto"><code class="language-python">
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import uuid
+
+# Load the raw text from the Delta table
+raw_pdf_df = spark.table("main.rag_chatbot.raw_pdf_text")
+documents_to_chunk = raw_pdf_df.select("text", "source", "page_number").collect()
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=100,
+    length_function=len,
+    separators=["\n\n", "\n", ". ", " ", ""]
+)
+
+chunks = []
+for doc in documents_to_chunk:
+    split_texts = text_splitter.split_text(doc['text'])
+    for text in split_texts:
+        chunks.append({
+            "chunk_id": str(uuid.uuid4()),
+            "source": doc['source'],
+            "page_number": doc['page_number'],
+            "chunk_text": text
+        })
+
+# Create the source chunks Delta table
+chunked_df = spark.createDataFrame(chunks)
+chunked_df.write.mode("overwrite").saveAsTable("main.rag_chatbot.chunked_text_source")
+
+# Enable Change Data Feed on the source table
+spark.sql("""
+  ALTER TABLE main.rag_chatbot.chunked_text_source SET TBLPROPERTIES (delta.enableChangeDataFeed = true)
+""")
+</code></pre>
+                    </div>
+                </div>
+            </article>
+
+            <article id="detail-index" class="detail-section bg-white p-8 rounded-lg shadow-lg">
+                <h4 class="text-2xl font-bold mb-4 text-[#4A4A4A]">Stage 3: Indexing with Vector Search</h4>
+                <p class="mb-6 text-gray-600">Databricks Vector Search automates the creation of a retrieval engine. A `Delta Sync Index` is configured to monitor the source chunks table. With "managed embeddings," Vector Search automatically handles the complex pipeline of converting text chunks into vector embeddings using a Foundation Model API and indexing them for fast similarity search.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h5 class="text-lg font-bold mb-2">Key Features:</h5>
+                        <ul class="list-disc list-inside space-y-2 text-gray-600">
+                            <li><b>Declarative Setup:</b> Define the source and model; Databricks manages the pipeline.</li>
+                            <li><b>Self-Updating:</b> Automatically syncs with the source Delta table via Change Data Feed.</li>
+                            <li><b>Serverless:</b> Scales automatically to meet query and indexing loads.</li>
+                        </ul>
+                    </div>
+                    <div class="chart-container h-64 md:h-80">
+                         <canvas id="syncTypeChart"></canvas>
+                         <p class="text-center text-sm text-gray-500 mt-2">Choose the sync type based on your application's latency and cost requirements.</p>
+                    </div>
+                </div>
+                 <div class="mt-6">
+                    <button class="toggle-code-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                        <span class="btn-text">Show Code Example</span>
+                        <span class="btn-icon ml-2">▶</span>
+                    </button>
+                    <div class="code-container hidden mt-4 relative">
+                        <button class="copy-code-btn absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-1 px-2 rounded">Copy</button>
+                        <pre class="code-block bg-gray-800 text-white p-4 rounded-lg overflow-x-auto"><code class="language-python">
+from databricks.vector_search.client import VectorSearchClient
+import time
+
+VECTOR_SEARCH_ENDPOINT_NAME = "rag_endpoint"
+SOURCE_TABLE_NAME = "main.rag_chatbot.chunked_text_source"
+VECTOR_SEARCH_INDEX_NAME = "main.rag_chatbot.pdf_knowledge_index"
+EMBEDDING_ENDPOINT_NAME = "databricks-bge-large-en"
+
+vsc = VectorSearchClient()
+
+# 1. Create the Vector Search endpoint
+if VECTOR_SEARCH_ENDPOINT_NAME not in [e['name'] for e in vsc.list_endpoints().get('endpoints', [])]:
+    print(f"Creating endpoint '{VECTOR_SEARCH_ENDPOINT_NAME}'...")
+    vsc.create_endpoint(name=VECTOR_SEARCH_ENDPOINT_NAME, endpoint_type="STANDARD")
+    while vsc.get_endpoint(VECTOR_SEARCH_ENDPOINT_NAME)['endpoint_status']['state'] != 'ONLINE':
+        print("Waiting for endpoint to be ready...")
+        time.sleep(30)
+else:
+    print(f"Endpoint '{VECTOR_SEARCH_ENDPOINT_NAME}' already exists.")
+
+# 2. Create the Delta Sync Index with managed embeddings
+try:
+    index = vsc.get_index(endpoint_name=VECTOR_SEARCH_ENDPOINT_NAME, index_name=VECTOR_SEARCH_INDEX_NAME)
+    print(f"Index '{VECTOR_SEARCH_INDEX_NAME}' already exists.")
+except Exception:
+    print(f"Creating index '{VECTOR_SEARCH_INDEX_NAME}'...")
+    vsc.create_delta_sync_index(
+        endpoint_name=VECTOR_SEARCH_ENDPOINT_NAME,
+        source_table_name=SOURCE_TABLE_NAME,
+        index_name=VECTOR_SEARCH_INDEX_NAME,
+        pipeline_type='TRIGGERED',
+        primary_key='chunk_id',
+        embedding_source_column='chunk_text',
+        embedding_model_endpoint_name=EMBEDDING_ENDPOINT_NAME
+    )
+    while not vsc.get_index(VECTOR_SEARCH_ENDPOINT_NAME, VECTOR_SEARCH_INDEX_NAME).status.get('ready', False):
+        print("Waiting for index to be ready...")
+        time.sleep(30)
+</code></pre>
+                    </div>
+                </div>
+            </article>
+
+            <article id="detail-generate" class="detail-section bg-white p-8 rounded-lg shadow-lg">
+                <h4 class="text-2xl font-bold mb-4 text-[#4A4A4A]">Stage 4: Retrieval and Generation with DBRX</h4>
+                <p class="mb-6 text-gray-600">This is the final stage where the chatbot answers a user's question. The process, known as the RAG chain, ensures answers are grounded in the provided knowledge base, reducing inaccuracies.</p>
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-100 rounded-lg">
+                        <p><span class="font-bold">1. Retrieve:</span> The user's query is sent to the Vector Search index, which returns the most semantically relevant document chunks.</p>
+                    </div>
+                    <div class="text-center text-2xl text-gray-400">↓</div>
+                    <div class="p-4 bg-gray-100 rounded-lg">
+                        <p><span class="font-bold">2. Construct Prompt:</span> The retrieved chunks (context) are combined with the original query into a detailed prompt for the LLM.</p>
+                    </div>
+                    <div class="text-center text-2xl text-gray-400">↓</div>
+                    <div class="p-4 bg-gray-100 rounded-lg">
+                        <p><span class="font-bold">3. Generate:</span> The final prompt is sent to the DBRX Instruct model endpoint, which generates a concise answer based *only* on the provided context.</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button class="toggle-code-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                        <span class="btn-text">Show Code Example</span>
+                        <span class="btn-icon ml-2">▶</span>
+                    </button>
+                    <div class="code-container hidden mt-4 relative">
+                        <button class="copy-code-btn absolute top-2 right-2 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-1 px-2 rounded">Copy</button>
+                        <pre class="code-block bg-gray-800 text-white p-4 rounded-lg overflow-x-auto"><code class="language-python">
+from databricks.sdk import WorkspaceClient
+from databricks.vector_search.client import VectorSearchClient
+
+class DatabricksRAGChain:
+    def __init__(self, vs_endpoint, vs_index, llm_endpoint):
+        self.vsc = VectorSearchClient()
+        self.vs_index = self.vsc.get_index(endpoint_name=vs_endpoint, index_name=vs_index)
+        self.llm_endpoint = llm_endpoint
+        self.workspace_client = WorkspaceClient()
+
+    def _get_retrieved_context(self, question, num_results=5):
+        results = self.vs_index.similarity_search(
+            query_text=question,
+            columns=["chunk_text", "source"],
+            num_results=num_results
+        )
+        context = ""
+        sources = set()
+        for i, doc in enumerate(results.get('result', {}).get('data_array', [])):
+            context += f"Passage {i+1}: {doc[0]}\n"
+            sources.add(doc[1])
+        return context, list(sources)
+
+    def _generate_prompt(self, question, context):
+        return f"""
+        You are an expert assistant. Your task is to answer the user's question based only on the context provided.
+        If the context does not contain the answer, state that you cannot answer.
+        CONTEXT: {context}
+        QUESTION: {question}
+        ANSWER:
+        """
+
+    def answer(self, question):
+        context, sources = self._get_retrieved_context(question)
+        if not context:
+            return "I could not find any relevant information.", []
+
+        prompt = self._generate_prompt(question, context)
+        response = self.workspace_client.chat.completions.create(
+            model=self.llm_endpoint,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1024,
+            temperature=0.1
+        )
+        return response.choices[0].message.content, sources
+
+# Instantiate and use the RAG chain
+# rag_chain = DatabricksRAGChain(
+#     vs_endpoint="rag_endpoint",
+#     vs_index="main.rag_chatbot.pdf_knowledge_index",
+#     llm_endpoint="databricks-dbrx-instruct"
+# )
+# answer, sources = rag_chain.answer("What are the key features of DBRX?")
+# print(f"Answer: {answer}\nSources: {sources}")
+</code></pre>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <hr class="my-16 border-gray-300">
+
+        <section id="production" class="py-12">
+             <h3 class="text-3xl font-bold text-center mb-2">Pathway to Production</h3>
+             <p class="text-center text-gray-600 mb-10">Moving from a notebook to a scalable application involves deploying the RAG chain as a managed endpoint and building a user interface.</p>
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                 <div class="bg-white p-8 rounded-lg shadow-md">
+                     <div class="text-4xl mb-4">📦</div>
+                     <h4 class="text-xl font-bold mb-2">Package with MLflow</h4>
+                     <p class="text-gray-600">The entire RAG chain is packaged as a reusable MLflow `pyfunc` model, capturing all logic and dependencies.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-lg shadow-md">
+                     <div class="text-4xl mb-4">🚀</div>
+                     <h4 class="text-xl font-bold mb-2">Deploy as Endpoint</h4>
+                     <p class="text-gray-600">The MLflow model is deployed as a Model Serving endpoint, providing a scalable, low-latency REST API.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-lg shadow-md">
+                     <div class="text-4xl mb-4">🖥️</div>
+                     <h4 class="text-xl font-bold mb-2">Build UI with Lakehouse Apps</h4>
+                     <p class="text-gray-600">A user-friendly interface is built with tools like Gradio and hosted as a Lakehouse App, creating a complete, shareable application.</p>
+                 </div>
+             </div>
+        </section>
+
+    </main>
+    
+    <footer class="text-center py-8 mt-12 border-t border-gray-200">
+        <p class="text-gray-500">An interactive exploration of building governable, production-grade AI on the Databricks Platform.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stages = {
+                ingest: document.getElementById('stage-ingest'),
+                prepare: document.getElementById('stage-prepare'),
+                index: document.getElementById('stage-index'),
+                generate: document.getElementById('stage-generate')
+            };
+
+            const details = {
+                ingest: document.getElementById('detail-ingest'),
+                prepare: document.getElementById('detail-prepare'),
+                index: document.getElementById('detail-index'),
+                generate: document.getElementById('detail-generate')
+            };
+
+            const allStageCards = Object.values(stages);
+            const allDetailSections = Object.values(details);
+
+            const showDetail = (stageKey) => {
+                allDetailSections.forEach(section => {
+                    section.classList.remove('visible');
+                });
+                allStageCards.forEach(card => {
+                    card.classList.remove('active');
+                });
+
+                if (details[stageKey]) {
+                    details[stageKey].classList.add('visible');
+                }
+                if (stages[stageKey]) {
+                    stages[stageKey].classList.add('active');
+                }
+            };
+
+            Object.keys(stages).forEach(key => {
+                stages[key].addEventListener('click', () => showDetail(key));
+            });
+            
+            showDetail('ingest');
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main > section, div[id^="detail-"]');
+            
+            window.addEventListener('scroll', () => {
+                let current = 'intro';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 80) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    } else if (current.startsWith('detail') && link.getAttribute('href') === '#details-container') {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.toggle-code-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const codeContainer = button.nextElementSibling;
+                    const btnText = button.querySelector('.btn-text');
+                    const btnIcon = button.querySelector('.btn-icon');
+                    const isHidden = codeContainer.classList.contains('hidden');
+                    
+                    if (isHidden) {
+                        codeContainer.classList.remove('hidden');
+                        btnText.textContent = 'Hide Code Example';
+                        btnIcon.textContent = '▼';
+                    } else {
+                        codeContainer.classList.add('hidden');
+                        btnText.textContent = 'Show Code Example';
+                        btnIcon.textContent = '▶';
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.copy-code-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const code = button.nextElementSibling.querySelector('code').innerText;
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        button.textContent = 'Copied!';
+                        setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy text: ', err);
+                        button.textContent = 'Error';
+                    }
+                    document.body.removeChild(textarea);
+                });
+            });
+
+            new Chart(document.getElementById('chunkingChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Fixed-Size', 'Recursive Character', 'Semantic (NLP)'],
+                    datasets: [{
+                        label: 'Implementation Complexity',
+                        data: [2, 4, 9],
+                        backgroundColor: '#A1A1A1',
+                    }, {
+                        label: 'Semantic Awareness',
+                        data: [1, 7, 10],
+                        backgroundColor: '#3498DB',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Chunking Strategy Trade-offs' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: { y: { beginAtZero: true, max: 10, title: { display: true, text: 'Relative Score' } } }
+                }
+            });
+
+            new Chart(document.getElementById('syncTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['TRIGGERED (Development)', 'CONTINUOUS (Production)'],
+                    datasets: [{
+                        data: [50, 50],
+                        backgroundColor: ['#A1A1A1', '#3498DB'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Vector Index Sync Pipeline Types' },
+                        legend: { position: 'bottom' }
+                    },
+                    cutout: '60%'
+                }
+            });
+        });
+    </script>
+</body>
+</html>
