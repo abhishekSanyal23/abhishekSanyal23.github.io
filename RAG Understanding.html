@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Retrieval-Augmented Generation (RAG)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Tech -->
+    <!-- Application Structure Plan: A top-navigation driven single-page application. The structure is thematic, breaking the report into logical, interactive sections: 1) An introduction to the problem and solution. 2) An interactive diagram-based explanation of the RAG workflows. 3) A visual comparison of RAG vs. Fine-Tuning. 4) A tabbed interface for the hands-on code lab. 5) A section on future concepts. This structure is chosen to facilitate non-linear exploration and active learning, making the dense technical information more digestible and engaging than a linear document. -->
+    <!-- Visualization & Content Choices: The application uses interactive HTML/CSS diagrams for the RAG pipelines, allowing users to click and learn about each step. A bar chart is used to visually compare abstract concepts like cost and explainability between RAG and Fine-Tuning. Tables are used for structured data, and tabbed sections organize code snippets for clarity. All choices prioritize interactivity and user-driven discovery over passive reading, using Chart.js for the chart and custom HTML/CSS for diagrams. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active {
+            color: #0891b2;
+            border-bottom-color: #0891b2;
+        }
+        .nav-link:hover {
+            color: #0891b2;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .diagram-step {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .diagram-step:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .code-tab.active {
+            background-color: #0891b2;
+            color: white;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-800">Interactive Guide to RAG</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600" data-section="intro">Introduction</a>
+                        <a class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600" data-section="how-it-works">How It Works</a>
+                        <a class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600" data-section="comparison">RAG vs Fine-Tuning</a>
+                        <a class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600" data-section="lab">Hands-On Lab</a>
+                        <a class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600" data-section="future">The Future</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5">
+                        <option value="intro">Introduction</option>
+                        <option value="how-it-works">How It Works</option>
+                        <option value="comparison">RAG vs Fine-Tuning</option>
+                        <option value="lab">Hands-On Lab</option>
+                        <option value="future">The Future</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <!-- Introduction Section -->
+        <section id="intro" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Grounding LLMs in Reality</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">Large Language Models (LLMs) are powerful, but operate from a "closed-book" memory. This leads to key challenges that Retrieval-Augmented Generation (RAG) is designed to solve.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-cyan-700">Knowledge Cutoff</h3>
+                    <p class="mt-2 text-slate-600">An LLM's knowledge is frozen in time, unaware of any events or data created after its training. This makes its information potentially outdated.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-cyan-700">Hallucination</h3>
+                    <p class="mt-2 text-slate-600">When an LLM doesn't know an answer, it may generate plausible-sounding but factually incorrect or fabricated information, a major risk for enterprise use.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-cyan-700">Lack of Specificity</h3>
+                    <p class="mt-2 text-slate-600">General-purpose LLMs have no access to your private, proprietary data, like internal policies or confidential reports, limiting their utility for custom tasks.</p>
+                </div>
+            </div>
+            
+            <div class="mt-16 bg-white p-8 rounded-xl shadow-2xl">
+                <h3 class="text-2xl font-bold text-center text-slate-800">RAG: The "Open-Book Exam" for AI</h3>
+                <p class="mt-4 text-center text-slate-600 max-w-4xl mx-auto">RAG transforms the LLM by connecting it to external, authoritative knowledge bases in real-time. Instead of just "remembering," the AI can "read" relevant documents before answering, grounding its responses in verifiable facts.</p>
+                <div class="mt-8 flex flex-col md:flex-row items-center justify-center gap-8 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-cyan-100 rounded-full flex items-center justify-center text-3xl">📖</div>
+                        <p class="mt-2 font-semibold">User Prompt</p>
+                    </div>
+                    <div class="text-4xl text-cyan-500 font-bold animate-pulse">&rarr;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-cyan-100 rounded-full flex items-center justify-center text-3xl">📚</div>
+                        <p class="mt-2 font-semibold">External Data</p>
+                        <p class="text-sm text-slate-500">(Your Docs, DBs, APIs)</p>
+                    </div>
+                    <div class="text-4xl text-cyan-500 font-bold animate-pulse">&rarr;</div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 bg-cyan-100 rounded-full flex items-center justify-center text-3xl">💡</div>
+                        <p class="mt-2 font-semibold">Grounded Answer</p>
+                        <p class="text-sm text-slate-500">(Fact-based & cited)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Anatomy of a RAG System</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">A RAG system has two main phases. The offline 'Ingestion' phase prepares your knowledge, and the online 'Inference' phase answers user queries. Click on any step below to learn more.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-16">
+                <!-- Ingestion Pipeline -->
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">1. Ingestion Pipeline (Offline)</h3>
+                    <div class="space-y-4">
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="ingest-load">Load Data</div>
+                        <div class="text-center text-2xl text-slate-400">&darr;</div>
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="ingest-chunk">Chunk Documents</div>
+                        <div class="text-center text-2xl text-slate-400">&darr;</div>
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="ingest-embed">Create Embeddings</div>
+                        <div class="text-center text-2xl text-slate-400">&darr;</div>
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="ingest-index">Index in Vector Store</div>
+                    </div>
+                </div>
+                <!-- Inference Pipeline -->
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">2. Inference Pipeline (Online)</h3>
+                    <div class="space-y-4">
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="infer-query">User Query</div>
+                        <div class="text-center text-2xl text-slate-400">&darr;</div>
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="infer-embed">Embed Query</div>
+                        <div class="text-center text-2xl text-slate-400">&darr;</div>
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="infer-retrieve">Retrieve Context</div>
+                        <div class="text-center text-2xl text-slate-400">&darr;</div>
+                        <div class="diagram-step bg-white p-4 rounded-lg shadow-md" data-detail="infer-generate">Augment & Generate</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="detail-pane" class="mt-12 bg-white p-8 rounded-xl shadow-xl min-h-[200px] transition-opacity duration-500">
+                <h4 id="detail-title" class="text-xl font-bold text-cyan-800"></h4>
+                <p id="detail-text" class="mt-2 text-slate-600"></p>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section id="comparison" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">RAG vs. Fine-Tuning</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">Should you use RAG or fine-tuning? It depends on your goal. RAG is for augmenting <span class="font-bold text-cyan-600">knowledge</span>, while fine-tuning is for adapting <span class="font-bold text-orange-600">skill or style</span>.</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="ragComparisonChart"></canvas>
+            </div>
+            <div class="mt-8 overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Feature</th>
+                            <th scope="col" class="px-6 py-3">Retrieval-Augmented Generation (RAG)</th>
+                            <th scope="col" class="px-6 py-3">Fine-Tuning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">Primary Use Case</th>
+                            <td class="px-6 py-4">Injecting factual, external, and dynamic knowledge.</td>
+                            <td class="px-6 py-4">Adapting model behavior, style, tone, or learning a new task format.</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">Cost</th>
+                            <td class="px-6 py-4">Lower computational cost (vector DB and processing).</td>
+                            <td class="px-6 py-4">High computational cost (GPU training time).</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">Speed of Update</th>
+                            <td class="px-6 py-4">Fast. New knowledge is available instantly upon updating the data source.</td>
+                            <td class="px-6 py-4">Slow. Requires a full retraining or fine-tuning cycle.</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">Hallucination Risk</th>
+                            <td class="px-6 py-4">Lower. Responses are grounded in provided context.</td>
+                            <td class="px-6 py-4">Can still hallucinate, sometimes in the new domain's style.</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">Explainability</th>
+                            <td class="px-6 py-4">High. Can cite the exact source documents used.</td>
+                            <td class="px-6 py-4">Low. Reasoning is opaque within the model's weights ("black box").</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Lab Section -->
+        <section id="lab" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Hands-On Lab: Build a PDF Q&A System</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">This section provides the step-by-step Python code to build your own RAG pipeline using LangChain. Use the tabs to navigate through the different parts of the code.</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-xl p-2 sm:p-4">
+                <div class="mb-4 border-b border-gray-200">
+                    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="code-tabs">
+                        <li class="mr-2"><a href="#" class="code-tab inline-block p-4 border-b-2 rounded-t-lg" data-code="setup">Setup</a></li>
+                        <li class="mr-2"><a href="#" class="code-tab inline-block p-4 border-b-2 rounded-t-lg" data-code="ingestion">Ingestion</a></li>
+                        <li class="mr-2"><a href="#" class="code-tab inline-block p-4 border-b-2 rounded-t-lg" data-code="retrieval">Retrieval</a></li>
+                        <li class="mr-2"><a href="#" class="code-tab inline-block p-4 border-b-2 rounded-t-lg" data-code="openai">OpenAI Chain</a></li>
+                        <li class="mr-2"><a href="#" class="code-tab inline-block p-4 border-b-2 rounded-t-lg" data-code="gemini">Gemini Chain</a></li>
+                        <li class="mr-2"><a href="#" class="code-tab inline-block p-4 border-b-2 rounded-t-lg" data-code="llama">Llama Chain</a></li>
+                    </ul>
+                </div>
+                <div id="code-content" class="bg-slate-900 rounded-lg p-4 overflow-x-auto text-white text-sm">
+                    <!-- Code content will be injected here by JS -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Future Section -->
+        <section id="future" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">The Future of RAG</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">RAG is rapidly evolving. The next frontier moves beyond simple text retrieval towards more dynamic, intelligent, and multi-faceted systems.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-cyan-700">Multimodal RAG</h3>
+                    <p class="mt-2 text-slate-600">Future systems will retrieve and reason over images, audio, video, and structured data, not just text. Imagine asking a question about a diagram and getting an answer synthesized from video tutorials and manuals.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-cyan-700">Agentic RAG</h3>
+                    <p class="mt-2 text-slate-600">Instead of a fixed pipeline, an LLM-powered "agent" will orchestrate the workflow. It can break down complex questions, decide which tools to use (e.g., web search, database query), and self-correct if it fails to find an answer.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-cyan-700">Integration with Knowledge Graphs</h3>
+                    <p class="mt-2 text-slate-600">Combining vector search with structured knowledge graphs will enable more sophisticated queries based on entities and their relationships, allowing the system to answer more complex, relational questions.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNav = document.getElementById('mobile-nav');
+            const sections = document.querySelectorAll('.content-section');
+            const diagramSteps = document.querySelectorAll('.diagram-step');
+            const detailPane = document.getElementById('detail-pane');
+            const detailTitle = document.getElementById('detail-title');
+            const detailText = document.getElementById('detail-text');
+            const codeTabs = document.querySelectorAll('.code-tab');
+            const codeContent = document.getElementById('code-content');
+
+            const details = {
+                'ingest-load': { title: '1. Load Data', text: 'The process begins by sourcing documents from their native repositories. These can include a wide variety of formats, such as PDF files, HTML web pages, Word documents, or records from a database.' },
+                'ingest-chunk': { title: '2. Chunk Documents', text: 'Since LLMs have a finite context window, large documents are split into smaller, semantically coherent segments. The chunking strategy (e.g., recursive, semantic) is critical for retrieval quality.' },
+                'ingest-embed': { title: '3. Create Embeddings', text: 'Each text chunk is passed through an embedding model, which converts the text into a high-dimensional numerical vector. This vector captures the semantic meaning of the text.' },
+                'ingest-index': { title: '4. Index in Vector Store', text: 'The generated vectors and their corresponding text chunks are loaded into a specialized vector database. This database creates an index for extremely fast and efficient similarity searches.' },
+                'infer-query': { title: '1. User Query', text: 'The process is initiated when a user submits a prompt in natural language.' },
+                'infer-embed': { title: '2. Embed Query', text: 'The user\'s query is converted into a vector using the exact same embedding model that was used during the ingestion phase to ensure they are in the same semantic space.' },
+                'infer-retrieve': { title: '3. Retrieve Context', text: 'The system uses the query vector to perform a similarity search in the vector database, finding the document chunks that are semantically closest to the query.' },
+                'infer-generate': { title: '4. Augment & Generate', text: 'The text from the retrieved chunks (the "context") is combined with the original user query into a new, enriched prompt. This prompt is sent to the LLM to generate a factually grounded answer.' },
+            };
+            
+            const codeSnippets = {
+                'setup': `
+<pre><code class="language-bash"># 1. Create requirements.txt
+langchain
+langchain-community
+langchain-openai
+langchain-google-vertexai
+pypdf
+faiss-cpu
+sentence-transformers
+python-dotenv
+ollama
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Create .env file
+OPENAI_API_KEY="your_openai_api_key_here"</code></pre>`,
+                'ingestion': `
+<pre><code class="language-python"># Load, Chunk, Embed, and Store
+from langchain_community.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+
+# Load document
+loader = PyPDFLoader("sample_report.pdf")
+documents = loader.load()
+
+# Split document
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+chunks = text_splitter.split_documents(documents)
+
+# Create embeddings
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+# Create vector store
+vector_store = FAISS.from_documents(chunks, embeddings)</code></pre>`,
+                'retrieval': `
+<pre><code class="language-python"># Create a retriever component from the vector store
+retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+
+# Test the retriever
+query = "What are the main financial risks for the company?"
+retrieved_docs = retriever.invoke(query)
+
+print(f"Retrieved {len(retrieved_docs)} documents.")</code></pre>`,
+                'openai': `
+<pre><code class="language-python">from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
+# Define LLM and Prompt
+llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
+prompt_template = """Use the context to answer the question.
+Context: {context}
+Question: {question}
+Answer:"""
+prompt = ChatPromptTemplate.from_template(prompt_template)
+
+# Create RAG chain
+rag_chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+# Invoke chain
+response = rag_chain.invoke("What are the main financial risks?")
+print(response)</code></pre>`,
+                'gemini': `
+<pre><code class="language-python">from langchain_google_vertexai import ChatVertexAI
+
+# Define the Gemini LLM from Google Vertex AI
+llm_gemini = ChatVertexAI(model_name="gemini-1.5-flash-001", temperature=0)
+
+# Re-create the chain with the Gemini LLM
+rag_chain_gemini = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm_gemini
+    | StrOutputParser()
+)
+
+# Invoke the chain
+response_gemini = rag_chain_gemini.invoke("What are the main financial risks?")
+print(response_gemini)</code></pre>`,
+                'llama': `
+<pre><code class="language-python">from langchain_community.llms import Ollama
+
+# Initialize local Llama model via Ollama
+# Ensure Ollama app is running and model is downloaded
+llm_llama = Ollama(model="llama3.1")
+
+# Re-create the chain with the Llama LLM
+rag_chain_llama = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt
+    | llm_llama
+    | StrOutputParser()
+)
+
+# Invoke the chain
+response_llama = rag_chain_llama.invoke("What are the main financial risks?")
+print(response_llama)</code></pre>`,
+            };
+
+            function showSection(sectionId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.section === sectionId);
+                });
+                mobileNav.value = sectionId;
+
+                if (sectionId === 'comparison') {
+                    renderComparisonChart();
+                }
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection(e.target.dataset.section);
+                });
+            });
+            
+            mobileNav.addEventListener('change', (e) => {
+                showSection(e.target.value);
+            });
+
+            diagramSteps.forEach(step => {
+                step.addEventListener('click', () => {
+                    const detailKey = step.dataset.detail;
+                    const detailData = details[detailKey];
+                    detailTitle.textContent = detailData.title;
+                    detailText.textContent = detailData.text;
+                    detailPane.style.opacity = 0;
+                    setTimeout(() => {
+                        detailPane.style.opacity = 1;
+                    }, 100);
+                });
+            });
+
+            function showCode(codeId) {
+                codeTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.code === codeId);
+                });
+                codeContent.innerHTML = codeSnippets[codeId];
+            }
+
+            codeTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showCode(e.target.dataset.code);
+                });
+            });
+
+            let comparisonChart = null;
+            function renderComparisonChart() {
+                if (comparisonChart) {
+                    comparisonChart.destroy();
+                }
+                const ctx = document.getElementById('ragComparisonChart').getContext('2d');
+                const data = {
+                    labels: ['Cost', 'Speed of Update', 'Hallucination Risk', 'Explainability'],
+                    datasets: [
+                        {
+                            label: 'RAG',
+                            data: [2, 4, 1, 4],
+                            backgroundColor: 'rgba(8, 145, 178, 0.6)',
+                            borderColor: 'rgba(8, 145, 178, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Fine-Tuning',
+                            data: [4, 1, 2, 1],
+                            backgroundColor: 'rgba(234, 88, 12, 0.6)',
+                            borderColor: 'rgba(234, 88, 12, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                };
+                comparisonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Visual Comparison (Higher is Better/More)',
+                                font: { size: 16 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label || '';
+                                        const value = context.raw;
+                                        let interpretation = '';
+                                        if (context.label === 'Cost') interpretation = value > 2 ? 'High Cost' : 'Low Cost';
+                                        if (context.label === 'Speed of Update') interpretation = value > 2 ? 'Fast' : 'Slow';
+                                        if (context.label === 'Hallucination Risk') interpretation = value > 1 ? 'High Risk' : 'Low Risk';
+                                        if (context.label === 'Explainability') interpretation = value > 2 ? 'High' : 'Low';
+                                        return `${label}: ${interpretation}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initial state
+            showSection('intro');
+            showCode('setup');
+            const initialDetail = details['ingest-load'];
+            detailTitle.textContent = initialDetail.title;
+            detailText.textContent = initialDetail.text;
+        });
+    </script>
+</body>
+</html>

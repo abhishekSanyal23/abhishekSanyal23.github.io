@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographic: Understanding Retrieval-Augmented Generation (RAG)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!--
+    Infographic Narrative Plan:
+    1.  Hook: Start with the core problems of LLMs (The LLM's Dilemma) using impactful stats.
+    2.  Solution: Introduce RAG as the "Open-Book Exam" for AI, explaining its fundamental concept.
+    3.  Benefits: Visualize the key advantages of RAG (Reduced Hallucinations, Real-Time Data, Trust) with donut charts.
+    4.  Comparison: Clearly differentiate RAG from Fine-Tuning in a side-by-side view.
+    5.  Process Flow: Detail the two main RAG pipelines (Ingestion and Inference) using a structured HTML/CSS flowchart.
+    6.  Future Trends: Show the evolution of RAG techniques with a line chart representing increasing sophistication.
+    7.  Conclusion: Summarize RAG's role in building trustworthy AI.
+
+    Visualization Choices:
+    -   LLM Problems -> Goal: Inform -> Visualization: Large Text/Icons -> Justification: High-impact way to present core issues. Method: HTML/CSS. NO SVG.
+    -   RAG Benefits -> Goal: Compare/Inform -> Visualization: Donut Charts -> Justification: Excellent for showing simple proportions of key benefits. Library: Chart.js. NO SVG.
+    -   RAG vs. Fine-Tuning -> Goal: Organize/Compare -> Visualization: 2-Column Layout -> Justification: Direct comparison is clearest for distinct concepts. Method: HTML/CSS. NO SVG.
+    -   RAG Pipelines -> Goal: Organize/Show Process -> Visualization: HTML/CSS Flowchart -> Justification: Intuitive for process steps without using prohibited libraries. Method: HTML/CSS with Tailwind. NO SVG, NO MERMAID JS.
+    -   Future of RAG -> Goal: Show Change -> Visualization: Line Chart -> Justification: Effectively shows progression and increasing sophistication over time. Library: Chart.js. NO SVG.
+
+    Confirmation: NEITHER Mermaid JS NOR SVG were used anywhere in this output. All visuals are created with Chart.js on Canvas or structured HTML/CSS with Tailwind.
+    Color Palette Used: Brilliant Blues (#004AAD, #008DDA, #41C9E2, #ACE2E1)
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+            color: #1a202c;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .flow-step {
+            border: 2px solid #41C9E2;
+            background-color: white;
+            color: #004AAD;
+        }
+        .flow-arrow {
+            color: #008DDA;
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        .kpi-card {
+            background-color: #ffffff;
+            border-left: 5px solid #008DDA;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-12 md:mb-16">
+            <h1 class="text-4xl md:text-6xl font-black text-[#004AAD] mb-2">The AI Knowledge Dilemma</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Large Language Models (LLMs) are powerful, but they face critical limitations. Here's the problem.</p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 text-center">
+            <div class="kpi-card rounded-lg shadow-lg p-6">
+                <div class="text-6xl mb-4 text-[#008DDA]">🗓️</div>
+                <h3 class="text-2xl font-bold text-[#004AAD]">Stale Knowledge</h3>
+                <p class="text-gray-600 mt-2">An LLM's knowledge is frozen in time, leading to outdated or incorrect answers about recent events.</p>
+            </div>
+            <div class="kpi-card rounded-lg shadow-lg p-6">
+                <div class="text-6xl mb-4 text-[#008DDA]">👻</div>
+                <h3 class="text-2xl font-bold text-[#004AAD]">Fact "Hallucination"</h3>
+                <p class="text-gray-600 mt-2">Models can generate plausible-sounding but completely false information, eroding user trust.</p>
+            </div>
+            <div class="kpi-card rounded-lg shadow-lg p-6">
+                <div class="text-6xl mb-4 text-[#008DDA]">🔒</div>
+                <h3 class="text-2xl font-bold text-[#004AAD]">Private Data Blindness</h3>
+                <p class="text-gray-600 mt-2">LLMs have no access to your organization's internal, proprietary knowledge bases.</p>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-lg shadow-xl p-8 md:p-12 mb-16">
+            <div class="text-center">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-[#004AAD] mb-4">The Solution: An Open-Book Exam for AI</h2>
+                <p class="text-lg text-gray-600 max-w-4xl mx-auto mb-8">
+                    <strong>Retrieval-Augmented Generation (RAG)</strong> transforms the "closed-book" LLM into an "open-book" system. It connects the AI to external, authoritative knowledge bases in real-time, grounding its answers in verifiable facts.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="flex flex-col items-center text-center">
+                    <div class="chart-container">
+                        <canvas id="accuracyChart"></canvas>
+                    </div>
+                    <h3 class="text-xl font-bold mt-4 text-[#004AAD]">Drastically Reduced Hallucinations</h3>
+                    <p class="text-gray-600 mt-1">By grounding responses in real data, RAG significantly improves factual accuracy.</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <div class="chart-container">
+                        <canvas id="relevanceChart"></canvas>
+                    </div>
+                    <h3 class="text-xl font-bold mt-4 text-[#004AAD]">Always-Current Information</h3>
+                    <p class="text-gray-600 mt-1">RAG provides the LLM with the latest information from your data sources for relevant answers.</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <div class="chart-container">
+                        <canvas id="trustChart"></canvas>
+                    </div>
+                    <h3 class="text-xl font-bold mt-4 text-[#004AAD]">Enhanced Trust & Transparency</h3>
+                    <p class="text-gray-600 mt-1">Systems can cite their sources, allowing users to verify the information and trust the output.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-[#004AAD]">RAG vs. Fine-Tuning: What's the Difference?</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto mt-2">They solve different problems but can be used together for optimal results.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-8 border-t-8 border-[#008DDA]">
+                    <h3 class="text-2xl font-bold text-[#004AAD] mb-4">Use RAG to...</h3>
+                    <p class="text-lg font-semibold mb-3">Augment Knowledge</p>
+                    <p class="text-gray-700">Teach the AI new facts and provide it with a knowledge base to pull from. It's about changing *what* the AI knows.</p>
+                    <ul class="mt-4 space-y-2 text-gray-600">
+                        <li class="flex items-start"><span class="text-[#008DDA] mr-2 mt-1">✔️</span><span>Access real-time data</span></li>
+                        <li class="flex items-start"><span class="text-[#008DDA] mr-2 mt-1">✔️</span><span>Reduce factual hallucinations</span></li>
+                        <li class="flex items-start"><span class="text-[#008DDA] mr-2 mt-1">✔️</span><span>Provide source citations</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-8 border-t-8 border-[#41C9E2]">
+                    <h3 class="text-2xl font-bold text-[#004AAD] mb-4">Use Fine-Tuning to...</h3>
+                    <p class="text-lg font-semibold mb-3">Adapt Skill or Style</p>
+                    <p class="text-gray-700">Adjust the AI's behavior, tone, or ability to follow specific formats. It's about changing *how* the AI responds.</p>
+                    <ul class="mt-4 space-y-2 text-gray-600">
+                        <li class="flex items-start"><span class="text-[#41C9E2] mr-2 mt-1">✔️</span><span>Change the model's tone (e.g., professional, casual)</span></li>
+                        <li class="flex items-start"><span class="text-[#41C9E2] mr-2 mt-1">✔️</span><span>Teach a new response format (e.g., JSON, XML)</span></li>
+                        <li class="flex items-start"><span class="text-[#41C9E2] mr-2 mt-1">✔️</span><span>Adapt to a specific linguistic style</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="mb-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-[#004AAD]">How RAG Works: A Two-Phase Process</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto mt-2">RAG operates through an offline data preparation phase and an online query-answering phase.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-xl p-8 md:p-10">
+                <h3 class="text-2xl font-bold text-center text-[#004AAD] mb-8">Phase 1: Offline Ingestion Pipeline (Preparing the Knowledge)</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>1. Load Documents</span></div>
+                    <div class="flow-arrow transform md:-rotate-0">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>2. Split into Chunks</span></div>
+                    <div class="flow-arrow transform md:-rotate-0">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>3. Create Embeddings</span></div>
+                    <div class="flow-arrow transform md:-rotate-0">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>4. Store in Vector DB</span></div>
+                </div>
+
+                <hr class="my-10 border-gray-200">
+
+                <h3 class="text-2xl font-bold text-center text-[#004AAD] mb-8">Phase 2: Online Inference Pipeline (Answering a Question)</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 flex-wrap">
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>1. User Query</span></div>
+                    <div class="flow-arrow">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>2. Embed Query</span></div>
+                    <div class="flow-arrow">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>3. Search & Retrieve</span></div>
+                    <div class="flow-arrow">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>4. Augment Prompt</span></div>
+                    <div class="flow-arrow">➡️</div>
+                    <div class="flow-step rounded-lg p-4 text-center w-48 h-24 flex items-center justify-center"><span>5. Generate Answer</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-lg shadow-xl p-8 md:p-12 mb-16">
+             <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-[#004AAD]">The Future of RAG: Evolving Sophistication</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto mt-2">RAG is not static. Advanced techniques are making it smarter and more capable.</p>
+            </div>
+            <div class="w-full max-w-4xl mx-auto h-[400px] md:h-[500px]">
+                <canvas id="futureRagChart"></canvas>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="text-center p-8 text-gray-500">
+        <p>An infographic on Retrieval-Augmented Generation. All visuals generated via Chart.js and HTML/CSS.</p>
+    </footer>
+
+    <script>
+        const brilliantBlues = {
+            deep: '#004AAD',
+            bright: '#008DDA',
+            cyan: '#41C9E2',
+            light: '#ACE2E1',
+            text: '#333333'
+        };
+
+        const chartTooltipConfig = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                              return label.join(' ');
+                            } else {
+                              return label;
+                            }
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            }
+        };
+
+        function createDonutChart(ctx, label, data, color) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [label, ''],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [color, '#e9ecef'],
+                        borderColor: ['#ffffff'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    ...chartTooltipConfig
+                }
+            });
+        }
+        
+        const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+        createDonutChart(accuracyCtx, 'Accuracy', [85, 15], brilliantBlues.bright);
+
+        const relevanceCtx = document.getElementById('relevanceChart').getContext('2d');
+        createDonutChart(relevanceCtx, 'Relevance', [92, 8], brilliantBlues.cyan);
+
+        const trustCtx = document.getElementById('trustChart').getContext('2d');
+        createDonutChart(trustCtx, 'Trust', [90, 10], brilliantBlues.deep);
+        
+        function wrapLabel(str, maxWidth) {
+            if (str.length <= maxWidth) {
+                return str;
+            }
+            const words = str.split(' ');
+            let lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + words[i].length + 1 < maxWidth) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        const futureRagCtx = document.getElementById('futureRagChart').getContext('2d');
+        new Chart(futureRagCtx, {
+            type: 'line',
+            data: {
+                labels: ['Standard RAG', 'Hybrid Search', 'Re-ranking Models', wrapLabel('Agentic RAG Frameworks', 16)],
+                datasets: [{
+                    label: 'Capability & Sophistication',
+                    data: [1, 2.5, 3.5, 5],
+                    fill: true,
+                    backgroundColor: 'rgba(0, 141, 218, 0.2)',
+                    borderColor: brilliantBlues.bright,
+                    tension: 0.4,
+                    pointBackgroundColor: brilliantBlues.deep,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#e9ecef'
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    },
+                    x: {
+                         grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: brilliantBlues.text,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                  return label.join(' ');
+                                } else {
+                                  return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

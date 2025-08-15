@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Introduction to Retrieval-Augmented Generation (RAG)</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for better typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Using the Inter font family for a clean, modern look */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Main Content Container -->
+    <div class="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+
+        <header class="text-center mb-12">
+            <!-- Main Title -->
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+                An Introduction to Retrieval-Augmented Generation (RAG)
+            </h1>
+        </header>
+
+        <main class="space-y-10">
+            <!-- Introductory Paragraph -->
+            <section class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+                <p class="text-lg sm:text-xl leading-relaxed text-gray-700">
+                    Retrieval-Augmented Generation, or <strong>RAG</strong>, is a powerful technique in artificial intelligence that enhances the capabilities of Large Language Models (LLMs). In essence, RAG gives a language model an "open-book" exam rather than forcing it to rely solely on the information it was trained on. It connects the LLM to an external, up-to-date knowledge source, allowing it to provide more accurate, relevant, and trustworthy answers.
+                </p>
+                <div class="mt-6 text-center">
+                    <a href="./RAG Infographic.html" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                        View RAG Infographic
+                    </a>
+                </div>
+            </section>
+
+            <!-- Section: The Problem -->
+            <section class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">The Problem: Static Knowledge in LLMs</h2>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700">
+                    Standard LLMs like ChatGPT or Gemini learn from a massive but fixed dataset. This training data acts like a snapshot in time. As a result, they can't access information created after their training was completed and may sometimes "hallucinate" or invent incorrect facts when they don't know an answer. For example, asking a standard LLM about a very recent event or a specific internal company document would likely result in a vague or inaccurate response because that information wasn't part of its original training.
+                </p>
+            </section>
+
+            <!-- Section: How RAG Works -->
+            <section class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">How RAG Works 🧠</h2>
+                <p class="text-base sm:text-lg leading-relaxed text-gray-700 mb-6">
+                    RAG solves this problem by combining two key processes: <strong>retrieval</strong> and <strong>generation</strong>.
+                </p>
+                <div class="space-y-4 text-base sm:text-lg text-gray-700">
+                    <p><strong class="font-semibold text-gray-900">Retrieval:</strong> When you ask a question, the RAG system first searches a specialized knowledge base (like a company's internal wiki, a set of recent news articles, or technical manuals) to find information relevant to your query.</p>
+                    <p><strong class="font-semibold text-gray-900">Generation:</strong> Next, it takes the relevant information it found and provides it to the LLM as context, along with your original question. The LLM then uses this fresh, specific context to generate a well-informed answer.</p>
+                </div>
+                <p class="mt-6 text-base sm:text-lg italic text-gray-600">
+                    Think of it like asking an expert a question. Instead of answering purely from memory, they first look up the latest details in a trusted reference book and then use that information to formulate their response.
+                </p>
+                <div class="mt-6 text-center">
+                     <a href="./RAG Understanding.html" target="_blank" rel="noopener noreferrer" class="inline-block bg-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-300">
+                        Dive Deeper: Understanding RAGs
+                    </a>
+                </div>
+            </section>
+
+            <!-- Section: Key Benefits -->
+            <section class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">Key Benefits of RAG</h2>
+                <!-- Ordered List for benefits -->
+                <ol class="list-decimal list-inside space-y-4 text-base sm:text-lg text-gray-700">
+                    <li><strong class="font-semibold">Improved Accuracy:</strong> By grounding responses in real, verifiable data, RAG significantly reduces the chances of the model making things up.</li>
+                    <li><strong class="font-semibold">Access to Current Information:</strong> It allows LLMs to answer questions about topics and events that have occurred since their last training date.</li>
+                    <li><strong class="font-semibold">Enhanced Trust and Transparency:</strong> RAG systems can often cite their sources, allowing users to verify the information for themselves.</li>
+                    <li><strong class="font-semibold">Domain-Specific Knowledge:</strong> Companies can use RAG to create AI assistants that are experts on their own private data without having to retrain a massive model.</li>
+                </ol>
+            </section>
+
+        </main>
+
+        <!-- Footer with Author Name -->
+        <footer class="text-center mt-16 border-t border-gray-200 pt-8">
+            <p class="text-sm text-gray-500">Author: Abhishek Sanyal</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
